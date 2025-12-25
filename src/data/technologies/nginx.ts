@@ -105,7 +105,7 @@ export const nginxAccessLog: LogType = {
       isDefault: true,
       structure:
         '$remote_addr - $remote_user [$time_local] "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent"',
-      example: `192.168.1.50 - alice [20/Dec/2025:14:32:18 +0100] "GET /api/users HTTP/1.1" 200 1534 "https://app.example.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"`,
+      example: `192.168.1.50 - alice [20/Dec/2025:14:32:18 +0100] "GET /api/users HTTP/1.1" 200 1534 "https://app.example.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" abdou`,
     },
     {
       id: "common",
