@@ -16,7 +16,7 @@ export const apache: Technology = {
     {
       id: "access",
       name: "Access Log",
-      description: "Records every HTTP request processed by Apache.",
+      description: "Records every HTTP request processed by Apache",
       defaultPath: "/var/log/apache2/access.log",
     },
     {
@@ -82,8 +82,8 @@ export const apacheAccessLog: LogType = {
       name: "Combined Log Format",
       isDefault: true,
       structure:
-        '%h %l %u %t "%r" %>s %b "%{Referer}i" "%{User-Agent}i""%r" %>s %b "%{Referer}i" "%{User-Agent}i""%r" %>s %b "%{Referer}i" "%{User-Agent}i""%r" %>s %b "%{Referer}i" "%{User-Agent}i"',
-      example: `192.168.1.50 - alice [20/Dec/2025:14:32:18 +0100] "GET /api/users HTTP/1.1" 200 1534 "https://app.example.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" yes`,
+        '%h %l %u %t "%r" %>s %b "%{Referer}i" "%{User-Agent}i"',
+      example: `192.168.1.50 - alice [20/Dec/2025:14:32:18 +0100] "GET /api/users HTTP/1.1" 200 1534 "https://app.example.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"`,
     },
     {
       id: "common",
@@ -174,7 +174,7 @@ export const apacheAccessLog: LogType = {
       common: "%{COMMONAPACHELOG}",
     },
     regex: {
-      combined: `^(?P<host>\\S+) (?P<ident>\\S+) (?P<user>\\S+) \\[(?P<timestamp>[^\\]]+)\\] "(?P<request>[^"]*)" (?P<status>\\d+) (?P<bytes>\\S+) "(?P<referer>[^"]*)" "(?P<useragent>[^"]*)""(?P<request>[^"]*)" (?P<status>\\d+) (?P<bytes>\\S+) "(?P<referer>[^"]*)" "(?P<useragent>[^"]*)""(?P<request>[^"]*)" (?P<status>\\d+) (?P<bytes>\\S+) "(?P<referer>[^"]*)" "(?P<useragent>[^"]*)""(?P<request>[^"]*)" (?P<status>\\d+) (?P<bytes>\\S+) "(?P<referer>[^"]*)" "(?P<useragent>[^"]*)"`,
+      combined: `^(?P<host>\\S+) (?P<ident>\\S+) (?P<user>\\S+) \\[(?P<timestamp>[^\\]]+)\\] "(?P<request>[^"]*)" (?P<status>\\d+) (?P<bytes>\\S+) "(?P<referer>[^"]*)" "(?P<useragent>[^"]*)"`,
     },
     examples: {
       logstash: `filter {
