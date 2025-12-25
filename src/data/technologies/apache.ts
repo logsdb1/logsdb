@@ -60,7 +60,7 @@ export const apacheAccessLog: LogType = {
   },
   paths: {
     linux: [
-      { distro: "Debian / Ubuntu", path: "/var/log/apache2/access.log" },
+      { distro: "Debian , Ubuntu", path: "/var/log/apache2/access.log" },
       { distro: "RHEL / CentOS / Fedora", path: "/var/log/httpd/access_log" },
       { distro: "Alpine", path: "/var/log/apache2/access.log" },
     ],
@@ -320,7 +320,7 @@ export const apacheErrorLog: LogType = {
   },
   paths: {
     linux: [
-      { distro: "Debian / Ubuntu", path: "/var/log/apache2/error.log" },
+      { distro: "Debian , Ubuntu", path: "/var/log/apache2/error.log" },
       { distro: "RHEL / CentOS / Fedora", path: "/var/log/httpd/error_log" },
     ],
     windows: [{ variant: "Default", path: "C:\\Apache24\\logs\\error.log" }],
