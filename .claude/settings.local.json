@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx create-next-app:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run lint:*)",
+      "Bash(systemctl:*)",
+      "Bash(service --status-all:*)",
+      "Bash(dpkg:*)",
+      "Bash(rpm:*)",
+      "Bash(ss -tlnp:*)",
+      "Bash(netstat:*)",
+      "Bash(apt-get update:*)",
+      "Bash(apt-get install:*)",
+      "Bash(ln:*)",
+      "Bash(nginx -t:*)",
+      "Bash(curl:*)",
+      "Bash(cat:*)",
+      "Bash(npm ls:*)",
+      "Bash(npx tailwindcss:*)",
+      "Bash(grep:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)"
+    ]
+  }
+}
