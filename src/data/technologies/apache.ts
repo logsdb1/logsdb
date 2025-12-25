@@ -83,7 +83,7 @@ export const apacheAccessLog: LogType = {
       isDefault: true,
       structure:
         '%h %l %u %t "%r" %>s %b "%{Referer}i" "%{User-Agent}i""%r" %>s %b "%{Referer}i" "%{User-Agent}i""%r" %>s %b "%{Referer}i" "%{User-Agent}i""%r" %>s %b "%{Referer}i" "%{User-Agent}i"',
-      example: `192.168.1.50 - alice [20/Dec/2025:14:32:18 +0100] "GET /api/users HTTP/1.1" 200 1534 "https://app.example.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"`,
+      example: `192.168.1.50 - alice [20/Dec/2025:14:32:18 +0100] "GET /api/users HTTP/1.1" 200 1534 "https://app.example.com" "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" yes`,
     },
     {
       id: "common",
