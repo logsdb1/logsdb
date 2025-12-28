@@ -78,6 +78,30 @@ const changelog: ChangelogEntry[] = [
     changes: [
       {
         type: "feature",
+        title: "Security Hardening",
+        description:
+          "Comprehensive security update: rate limiting (10 uploads/hour, 100 API requests/minute), anti-bot protection with challenge tokens and honeypot fields, input validation, and MIME type verification.",
+      },
+      {
+        type: "improvement",
+        title: "Security Headers",
+        description:
+          "Added Content-Security-Policy, Strict-Transport-Security (HSTS), X-Frame-Options, X-Content-Type-Options, and other security headers to protect against XSS, clickjacking, and MIME sniffing attacks.",
+      },
+      {
+        type: "fix",
+        title: "Security Vulnerabilities Fixed",
+        description:
+          "Fixed ReDoS vulnerability in contribution routes, path traversal in file downloads, and unsafe JSON parsing. Updated Next.js to 14.2.35 to address multiple CVEs.",
+      },
+      {
+        type: "feature",
+        title: "Role-Based Access Control",
+        description:
+          "Added RBAC system with user, contributor, and admin roles. Roles are configurable via environment variables.",
+      },
+      {
+        type: "feature",
         title: "Log Sample Uploads",
         description:
           "Contributors can now upload log files (.log, .txt) directly without authentication. Files are stored with metadata and publicly accessible.",
