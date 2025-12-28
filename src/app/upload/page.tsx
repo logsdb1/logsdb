@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -67,6 +67,27 @@ export default function UploadPage() {
     error?: string;
   } | null>(null);
 
+  // Anti-bot challenge token
+  const [challengeToken, setChallengeToken] = useState<string>("");
+  const [challengeTimestamp, setChallengeTimestamp] = useState<number>(0);
+
+  // Fetch challenge token on mount
+  useEffect(() => {
+    const fetchChallenge = async () => {
+      try {
+        const response = await fetch("/api/logs-upload?action=challenge");
+        if (response.ok) {
+          const data = await response.json();
+          setChallengeToken(data.token);
+          setChallengeTimestamp(data.timestamp);
+        }
+      } catch {
+        // Will retry on upload if needed
+      }
+    };
+    fetchChallenge();
+  }, []);
+
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(true);
@@ -123,10 +144,29 @@ export default function UploadPage() {
     setUploadResult(null);
 
     try {
+      // Refresh challenge token if expired or missing
+      let token = challengeToken;
+      let timestamp = challengeTimestamp;
+
+      if (!token || Date.now() - timestamp > 4 * 60 * 1000) {
+        const challengeResponse = await fetch("/api/logs-upload?action=challenge");
+        if (challengeResponse.ok) {
+          const challengeData = await challengeResponse.json();
+          token = challengeData.token;
+          timestamp = challengeData.timestamp;
+          setChallengeToken(token);
+          setChallengeTimestamp(timestamp);
+        }
+      }
+
       const formData = new FormData();
       formData.append("file", file);
       formData.append("technology", finalTechnology);
       formData.append("logType", finalLogType);
+
+      // Anti-bot fields
+      formData.append("_token", token);
+      formData.append("_timestamp", String(timestamp));
 
       const response = await fetch("/api/logs-upload", {
         method: "POST",
@@ -145,6 +185,14 @@ export default function UploadPage() {
         setCustomTechnology("");
         setLogType("");
         setCustomLogType("");
+
+        // Get new challenge token for next upload
+        const newChallenge = await fetch("/api/logs-upload?action=challenge");
+        if (newChallenge.ok) {
+          const newData = await newChallenge.json();
+          setChallengeToken(newData.token);
+          setChallengeTimestamp(newData.timestamp);
+        }
       } else {
         setUploadResult({
           success: false,
@@ -214,6 +262,14 @@ export default function UploadPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Honeypot fields - hidden from users, bots will fill them */}
+            <div style={{ position: "absolute", left: "-9999px" }} aria-hidden="true">
+              <input type="text" name="website" tabIndex={-1} autoComplete="off" />
+              <input type="text" name="url" tabIndex={-1} autoComplete="off" />
+              <input type="email" name="email2" tabIndex={-1} autoComplete="off" />
+              <input type="tel" name="phone" tabIndex={-1} autoComplete="off" />
+            </div>
+
             {/* Drop Zone */}
             <div
               className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${

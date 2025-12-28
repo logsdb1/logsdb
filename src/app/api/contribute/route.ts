@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { Octokit } from "@octokit/rest";
 import { authOptions } from "@/lib/auth";
+import {
+  escapeRegex,
+  isValidIdentifier,
+  isValidFieldName,
+  validateLength,
+  INPUT_LIMITS,
+} from "@/lib/security";
 
 const REPO_OWNER = "logsdb1";
 const REPO_NAME = "logsdb";
@@ -41,9 +48,21 @@ function updateField(
   newValue: string,
   searchContext?: string
 ): string {
+  // Validate inputs to prevent ReDoS attacks
+  if (!isValidIdentifier(logTypeId)) {
+    throw new Error("Invalid logTypeId format");
+  }
+  if (!isValidFieldName(fieldName)) {
+    throw new Error("Invalid fieldName format");
+  }
+
+  // Escape user inputs for safe regex usage
+  const safeLogTypeId = escapeRegex(logTypeId);
+  const safeFieldName = escapeRegex(fieldName);
+
   // Find the LogType export for this logTypeId
   const logTypePattern = new RegExp(
-    `(export\\s+const\\s+\\w+:\\s*LogType\\s*=\\s*\\{[\\s\\S]*?id:\\s*["'\`]${logTypeId}["'\`])`,
+    `(export\\s+const\\s+\\w+:\\s*LogType\\s*=\\s*\\{[\\s\\S]*?id:\\s*["'\`]${safeLogTypeId}["'\`])`,
     "s"
   );
 
@@ -55,14 +74,19 @@ function updateField(
   // Find the field within context (if provided) or directly
   let searchStart = logTypeStart;
   if (searchContext) {
-    const contextPattern = new RegExp(`${searchContext}[\\s\\S]*?${fieldName}:\\s*`, "s");
+    // searchContext is a hardcoded string from our code, not user input
+    const safeSearchContext = escapeRegex(searchContext);
+    const contextPattern = new RegExp(
+      `${safeSearchContext}[\\s\\S]*?${safeFieldName}:\\s*`,
+      "s"
+    );
     const contextMatch = content.slice(logTypeStart).match(contextPattern);
     if (!contextMatch) return content;
     searchStart = logTypeStart + contextMatch.index!;
   }
 
   // Find the field
-  const fieldPattern = new RegExp(`(${fieldName}:\\s*)(["'\`])`, "s");
+  const fieldPattern = new RegExp(`(${safeFieldName}:\\s*)(["'\`])`, "s");
   const fieldMatch = content.slice(searchStart).match(fieldPattern);
   if (!fieldMatch) return content;
 
@@ -143,6 +167,30 @@ export async function POST(request: NextRequest) {
         { error: "Missing required fields" },
         { status: 400 }
       );
+    }
+
+    // Validate technology and logType identifiers
+    if (!isValidIdentifier(technology) || !isValidIdentifier(logType)) {
+      return NextResponse.json(
+        { error: "Invalid technology or logType format" },
+        { status: 400 }
+      );
+    }
+
+    // Validate field lengths
+    const fieldValidations = [
+      validateLength(changes.description, INPUT_LIMITS.DESCRIPTION, "description"),
+      validateLength(changes.example, INPUT_LIMITS.EXAMPLE, "example"),
+      validateLength(changes.structure, INPUT_LIMITS.STRUCTURE, "structure"),
+      validateLength(changes.grokPattern, INPUT_LIMITS.PATTERN, "grokPattern"),
+      validateLength(changes.regexPattern, INPUT_LIMITS.PATTERN, "regexPattern"),
+      validateLength(changes.additionalNotes, INPUT_LIMITS.NOTES, "additionalNotes"),
+    ];
+
+    for (const validation of fieldValidations) {
+      if (!validation.valid) {
+        return NextResponse.json({ error: validation.error }, { status: 400 });
+      }
     }
 
     const octokit = new Octokit({

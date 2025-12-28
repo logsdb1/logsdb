@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { Octokit } from "@octokit/rest";
 import { authOptions } from "@/lib/auth";
+import { validateNewLogTypeRequest } from "@/lib/validators";
 
 const REPO_OWNER = "logsdb1";
 const REPO_NAME = "logsdb";
@@ -111,14 +112,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body: NewLogTypeRequest = await request.json();
+    const body = await request.json();
 
-    if (!body.technologyId || !body.logTypeId || !body.logTypeName) {
+    // Comprehensive input validation
+    const validation = validateNewLogTypeRequest(body);
+    if (!validation.valid) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "Validation failed", details: validation.errors },
         { status: 400 }
       );
     }
+
+    // Cast to typed request after validation
+    const validatedBody = body as NewLogTypeRequest;
 
     const octokit = new Octokit({
       auth: session.accessToken,
@@ -158,8 +164,8 @@ export async function POST(request: NextRequest) {
       ref: "heads/main",
     });
 
-    // Create branch
-    const branchName = `new-${body.technologyId}-${body.logTypeId}-${Date.now()}`;
+    // Create branch with sanitized name
+    const branchName = `new-${validatedBody.technologyId}-${validatedBody.logTypeId}-${Date.now()}`;
     await octokit.git.createRef({
       owner: user.login,
       repo: REPO_NAME,
@@ -167,22 +173,22 @@ export async function POST(request: NextRequest) {
       sha: ref.object.sha,
     });
 
-    const filePath = `src/data/technologies/${body.technologyId}.ts`;
+    const filePath = `src/data/technologies/${validatedBody.technologyId}.ts`;
 
-    if (body.isNewTechnology) {
+    if (validatedBody.isNewTechnology) {
       // Create new technology file
-      const newFileContent = generateNewTechnologyFile(body);
+      const newFileContent = generateNewTechnologyFile(validatedBody);
 
       await octokit.repos.createOrUpdateFileContents({
         owner: user.login,
         repo: REPO_NAME,
         path: filePath,
-        message: `feat(${body.technologyId}): add ${body.technologyName} with ${body.logTypeName}
+        message: `feat(${validatedBody.technologyId}): add ${validatedBody.technologyName} with ${validatedBody.logTypeName}
 
-Added new technology: ${body.technologyName}
-Added log type: ${body.logTypeName}
+Added new technology: ${validatedBody.technologyName}
+Added log type: ${validatedBody.logTypeName}
 
-${body.additionalNotes ? `Notes: ${body.additionalNotes}` : ""}`.trim(),
+${validatedBody.additionalNotes ? `Notes: ${validatedBody.additionalNotes}` : ""}`.trim(),
         content: Buffer.from(newFileContent).toString("base64"),
         branch: branchName,
       });
@@ -200,26 +206,26 @@ ${body.additionalNotes ? `Notes: ${body.additionalNotes}` : ""}`.trim(),
           let indexContent = Buffer.from(indexFile.content, "base64").toString("utf-8");
 
           // Add import
-          const importLine = `import { ${body.technologyId}, logTypes as ${body.technologyId}LogTypes } from "./${body.technologyId}";\n`;
+          const importLine = `import { ${validatedBody.technologyId}, logTypes as ${validatedBody.technologyId}LogTypes } from "./${validatedBody.technologyId}";\n`;
           indexContent = importLine + indexContent;
 
           // Add to technologies array
           indexContent = indexContent.replace(
             /export const technologies: Technology\[\] = \[/,
-            `export const technologies: Technology[] = [\n  ${body.technologyId},`
+            `export const technologies: Technology[] = [\n  ${validatedBody.technologyId},`
           );
 
           // Add to allLogTypes
           indexContent = indexContent.replace(
             /export const allLogTypes: LogType\[\] = \[/,
-            `export const allLogTypes: LogType[] = [\n  ...${body.technologyId}LogTypes,`
+            `export const allLogTypes: LogType[] = [\n  ...${validatedBody.technologyId}LogTypes,`
           );
 
           await octokit.repos.createOrUpdateFileContents({
             owner: user.login,
             repo: REPO_NAME,
             path: "src/data/technologies/index.ts",
-            message: `feat(${body.technologyId}): register new technology`,
+            message: `feat(${validatedBody.technologyId}): register new technology`,
             content: Buffer.from(indexContent).toString("base64"),
             sha: indexFile.sha,
             branch: branchName,
@@ -245,8 +251,8 @@ ${body.additionalNotes ? `Notes: ${body.additionalNotes}` : ""}`.trim(),
       }
 
       let content = Buffer.from(fileData.content, "base64").toString("utf-8");
-      const logTypeCode = generateLogTypeCode(body);
-      const varName = body.logTypeId.replace(/-/g, "");
+      const logTypeCode = generateLogTypeCode(validatedBody);
+      const varName = validatedBody.logTypeId.replace(/-/g, "");
 
       // Add log type export before the technology export
       const techExportMatch = content.match(/export const \w+: Technology/);
@@ -265,18 +271,18 @@ ${body.additionalNotes ? `Notes: ${body.additionalNotes}` : ""}`.trim(),
       // Add to technology's logTypes
       content = content.replace(
         /logTypes: \[/,
-        `logTypes: [\n    { id: "${body.logTypeId}", name: "${body.logTypeName}" },`
+        `logTypes: [\n    { id: "${validatedBody.logTypeId}", name: "${validatedBody.logTypeName}" },`
       );
 
       await octokit.repos.createOrUpdateFileContents({
         owner: user.login,
         repo: REPO_NAME,
         path: filePath,
-        message: `feat(${body.technologyId}): add ${body.logTypeName}
+        message: `feat(${validatedBody.technologyId}): add ${validatedBody.logTypeName}
 
-Added new log type: ${body.logTypeName}
+Added new log type: ${validatedBody.logTypeName}
 
-${body.additionalNotes ? `Notes: ${body.additionalNotes}` : ""}`.trim(),
+${validatedBody.additionalNotes ? `Notes: ${validatedBody.additionalNotes}` : ""}`.trim(),
         content: Buffer.from(content).toString("base64"),
         sha: fileData.sha,
         branch: branchName,
@@ -287,35 +293,35 @@ ${body.additionalNotes ? `Notes: ${body.additionalNotes}` : ""}`.trim(),
     const { data: pr } = await octokit.pulls.create({
       owner: REPO_OWNER,
       repo: REPO_NAME,
-      title: body.isNewTechnology
-        ? `feat(${body.technologyId}): add ${body.technologyName} with ${body.logTypeName}`
-        : `feat(${body.technologyId}): add ${body.logTypeName}`,
+      title: validatedBody.isNewTechnology
+        ? `feat(${validatedBody.technologyId}): add ${validatedBody.technologyName} with ${validatedBody.logTypeName}`
+        : `feat(${validatedBody.technologyId}): add ${validatedBody.logTypeName}`,
       body: `## Summary
 
-${body.isNewTechnology ? `Adds new technology **${body.technologyName}** with ` : "Adds "}**${body.logTypeName}** log type.
+${validatedBody.isNewTechnology ? `Adds new technology **${validatedBody.technologyName}** with ` : "Adds "}**${validatedBody.logTypeName}** log type.
 
 ### Log Type Details
 
 | Field | Value |
 |-------|-------|
-| ID | \`${body.logTypeId}\` |
-| Name | ${body.logTypeName} |
-| Description | ${body.logTypeDescription} |
+| ID | \`${validatedBody.logTypeId}\` |
+| Name | ${validatedBody.logTypeName} |
+| Description | ${validatedBody.logTypeDescription} |
 
 ### Paths
 
 **Linux:**
-${body.linuxPaths.filter(p => p.path).map(p => `- ${p.distro}: \`${p.path}\``).join("\n")}
+${validatedBody.linuxPaths?.filter(p => p.path).map(p => `- ${p.distro}: \`${p.path}\``).join("\n") || "N/A"}
 
-${body.windowsPath ? `**Windows:** \`${body.windowsPath}\`` : ""}
-${body.macPath ? `**macOS:** \`${body.macPath}\`` : ""}
+${validatedBody.windowsPath ? `**Windows:** \`${validatedBody.windowsPath}\`` : ""}
+${validatedBody.macPath ? `**macOS:** \`${validatedBody.macPath}\`` : ""}
 
 ### Example
 \`\`\`
-${body.example}
+${validatedBody.example}
 \`\`\`
 
-${body.additionalNotes ? `### Notes\n${body.additionalNotes}` : ""}
+${validatedBody.additionalNotes ? `### Notes\n${validatedBody.additionalNotes}` : ""}
 
 ---
 Submitted via [LogsDB Contribute](https://logsdb.com/contribute/new)

@@ -1,5 +1,35 @@
 import { NextAuthOptions } from "next-auth";
 import GithubProvider from "next-auth/providers/github";
+import { getUserRole, Role } from "./authorization";
+
+// Extend NextAuth types
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id?: string;
+      name?: string | null;
+      email?: string | null;
+      image?: string | null;
+      username: string;
+      role: Role;
+    };
+    // accessToken is kept for server-side API calls but we need
+    // to access it via getServerSession, not client session
+    accessToken?: string;
+  }
+
+  interface Profile {
+    login?: string;
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    accessToken?: string;
+    username?: string;
+    role?: Role;
+  }
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -14,14 +44,23 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, account }) {
-      if (account) {
+    async jwt({ token, account, profile }) {
+      if (account && profile) {
+        // Store access token server-side only
         token.accessToken = account.access_token;
+        token.username = profile.login || "";
+        token.role = getUserRole(profile.login);
       }
       return token;
     },
     async session({ session, token }) {
-      session.accessToken = token.accessToken as string;
+      // Add user info to session (safe for client)
+      if (session.user) {
+        session.user.username = token.username || "";
+        session.user.role = token.role || "user";
+      }
+      // Keep accessToken for server-side use via getServerSession
+      session.accessToken = token.accessToken;
       return session;
     },
   },
