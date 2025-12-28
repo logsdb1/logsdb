@@ -74,6 +74,62 @@ const changeTypeConfig: Record<
 // Changelog data - newest first
 const changelog: ChangelogEntry[] = [
   {
+    date: "2025-12-28",
+    changes: [
+      {
+        type: "feature",
+        title: "Log Sample Uploads",
+        description:
+          "Contributors can now upload log files (.log, .txt) directly without authentication. Files are stored with metadata and publicly accessible.",
+        link: "/upload",
+      },
+      {
+        type: "feature",
+        title: "Browse Log Samples",
+        description:
+          "New page to browse all uploaded log samples with filtering by technology and log type, pagination, and sorting options.",
+        link: "/uploads",
+      },
+      {
+        type: "feature",
+        title: "View Samples on Log Pages",
+        description:
+          "Each log type documentation page now has a 'View Samples' button linking to real-world log examples from the community.",
+      },
+      {
+        type: "improvement",
+        title: "Sorting Options for Uploads",
+        description:
+          "Sort uploaded log samples by date, file size, or name in ascending or descending order.",
+        link: "/uploads",
+      },
+      {
+        type: "improvement",
+        title: "SEO Optimizations",
+        description:
+          "Dynamic meta titles for log sample detail pages, noindex for filtered pages to avoid thin content issues.",
+      },
+    ],
+  },
+  {
+    date: "2025-12-27",
+    changes: [
+      {
+        type: "feature",
+        title: "Community Discussions",
+        description:
+          "Integrated GitHub Discussions for community Q&A, sample requests, and troubleshooting help.",
+        link: "/community",
+      },
+      {
+        type: "feature",
+        title: "Related Discussions on Log Pages",
+        description:
+          "Each log type page now shows related community discussions for that technology.",
+      },
+    ],
+  },
+  {
     date: "2025-12-26",
     changes: [
       {
