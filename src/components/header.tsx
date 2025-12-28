@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Database, Search, Github } from "lucide-react";
+import { Database, Search, Github, Sparkles, Users, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SearchDialog } from "@/components/search-dialog";
@@ -29,10 +29,25 @@ export function Header() {
               Tools
             </Link>
             <Link
-              href="/guides"
-              className="transition-colors hover:text-foreground/80 text-foreground/60"
+              href="/upload"
+              className="transition-colors hover:text-foreground/80 text-foreground/60 flex items-center gap-1"
             >
-              Guides
+              <Upload className="h-3 w-3" />
+              Upload
+            </Link>
+            <Link
+              href="/community"
+              className="transition-colors hover:text-foreground/80 text-foreground/60 flex items-center gap-1"
+            >
+              <Users className="h-3 w-3" />
+              Community
+            </Link>
+            <Link
+              href="/changelog"
+              className="transition-colors hover:text-foreground/80 text-foreground/60 flex items-center gap-1"
+            >
+              <Sparkles className="h-3 w-3 text-primary" />
+              What&apos;s New
             </Link>
           </nav>
         </div>
