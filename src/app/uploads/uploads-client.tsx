@@ -15,6 +15,8 @@ import {
   Search,
   ChevronDown,
   ChevronUp,
+  ChevronLeft,
+  ChevronRight,
   FileCode,
   Eye,
 } from "lucide-react";
@@ -80,6 +82,13 @@ interface LogUpload {
   lineCount?: number;
 }
 
+interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
 function UploadsContent() {
   const searchParams = useSearchParams();
   const [uploads, setUploads] = useState<LogUpload[]>([]);
@@ -88,6 +97,8 @@ function UploadsContent() {
   const [logTypeFilter, setLogTypeFilter] = useState<string>(searchParams.get("logType") || "all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [expandedPreviews, setExpandedPreviews] = useState<Set<string>>(new Set());
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState<Pagination>({ page: 1, limit: 10, total: 0, totalPages: 0 });
 
   const fetchUploads = useCallback(async () => {
     setLoading(true);
@@ -96,17 +107,27 @@ function UploadsContent() {
       if (filter !== "all") params.set("technology", filter);
       if (logTypeFilter !== "all") params.set("logType", logTypeFilter);
       if (searchQuery) params.set("q", searchQuery);
+      params.set("page", page.toString());
+      params.set("limit", "10");
 
-      const url = `/api/logs-upload${params.toString() ? `?${params.toString()}` : ""}`;
+      const url = `/api/logs-upload?${params.toString()}`;
       const response = await fetch(url);
       const data = await response.json();
       setUploads(data.uploads || []);
+      if (data.pagination) {
+        setPagination(data.pagination);
+      }
     } catch (error) {
       console.error("Failed to fetch uploads:", error);
       setUploads([]);
     } finally {
       setLoading(false);
     }
+  }, [filter, logTypeFilter, searchQuery, page]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(1);
   }, [filter, logTypeFilter, searchQuery]);
 
   useEffect(() => {
@@ -222,8 +243,9 @@ function UploadsContent() {
 
       {/* Results count */}
       <div className="text-sm text-muted-foreground mb-4">
-        {uploads.length} file{uploads.length !== 1 ? "s" : ""} found
+        {pagination.total} file{pagination.total !== 1 ? "s" : ""} found
         {searchQuery && ` for "${searchQuery}"`}
+        {pagination.totalPages > 1 && ` (page ${pagination.page} of ${pagination.totalPages})`}
       </div>
 
       {/* Uploads List */}
@@ -344,6 +366,69 @@ function UploadsContent() {
               </CardContent>
             </Card>
           ))}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {pagination.totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 mt-8">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage(1)}
+            disabled={page === 1}
+          >
+            First
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <div className="flex items-center gap-1">
+            {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+              let pageNum: number;
+              if (pagination.totalPages <= 5) {
+                pageNum = i + 1;
+              } else if (page <= 3) {
+                pageNum = i + 1;
+              } else if (page >= pagination.totalPages - 2) {
+                pageNum = pagination.totalPages - 4 + i;
+              } else {
+                pageNum = page - 2 + i;
+              }
+              return (
+                <Button
+                  key={pageNum}
+                  variant={page === pageNum ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setPage(pageNum)}
+                  className="w-9"
+                >
+                  {pageNum}
+                </Button>
+              );
+            })}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
+            disabled={page === pagination.totalPages}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage(pagination.totalPages)}
+            disabled={page === pagination.totalPages}
+          >
+            Last
+          </Button>
         </div>
       )}
     </div>

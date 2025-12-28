@@ -140,6 +140,8 @@ export async function GET(request: Request) {
     const technology = searchParams.get("technology");
     const logType = searchParams.get("logType");
     const query = searchParams.get("q");
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const limit = parseInt(searchParams.get("limit") || "10", 10);
 
     const metadata = await getMetadata();
     let uploads = metadata.uploads;
@@ -166,7 +168,21 @@ export async function GET(request: Request) {
       );
     }
 
-    return NextResponse.json({ uploads });
+    // Pagination
+    const total = uploads.length;
+    const totalPages = Math.ceil(total / limit);
+    const offset = (page - 1) * limit;
+    const paginatedUploads = uploads.slice(offset, offset + limit);
+
+    return NextResponse.json({
+      uploads: paginatedUploads,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+      },
+    });
   } catch (error) {
     console.error("Error fetching uploads:", error);
     return NextResponse.json({ error: "Failed to fetch uploads" }, { status: 500 });
