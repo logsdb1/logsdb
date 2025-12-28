@@ -19,6 +19,7 @@ import {
   ChevronRight,
   FileCode,
   Eye,
+  ArrowUpDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -99,6 +100,8 @@ function UploadsContent() {
   const [expandedPreviews, setExpandedPreviews] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState<Pagination>({ page: 1, limit: 10, total: 0, totalPages: 0 });
+  const [sortBy, setSortBy] = useState<string>("date");
+  const [sortOrder, setSortOrder] = useState<string>("desc");
 
   const fetchUploads = useCallback(async () => {
     setLoading(true);
@@ -109,6 +112,8 @@ function UploadsContent() {
       if (searchQuery) params.set("q", searchQuery);
       params.set("page", page.toString());
       params.set("limit", "10");
+      params.set("sortBy", sortBy);
+      params.set("sortOrder", sortOrder);
 
       const url = `/api/logs-upload?${params.toString()}`;
       const response = await fetch(url);
@@ -123,12 +128,12 @@ function UploadsContent() {
     } finally {
       setLoading(false);
     }
-  }, [filter, logTypeFilter, searchQuery, page]);
+  }, [filter, logTypeFilter, searchQuery, page, sortBy, sortOrder]);
 
-  // Reset page when filters change
+  // Reset page when filters or sort change
   useEffect(() => {
     setPage(1);
-  }, [filter, logTypeFilter, searchQuery]);
+  }, [filter, logTypeFilter, searchQuery, sortBy, sortOrder]);
 
   useEffect(() => {
     const debounce = setTimeout(() => {
@@ -238,6 +243,31 @@ function UploadsContent() {
               ))}
             </SelectContent>
           </Select>
+          <div className="flex items-center gap-1 ml-2">
+            <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-28">
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="date">Date</SelectItem>
+                <SelectItem value="size">Size</SelectItem>
+                <SelectItem value="name">Name</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSortOrder(o => o === "desc" ? "asc" : "desc")}
+              className="px-2"
+            >
+              {sortOrder === "desc" ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronUp className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
         </div>
       </div>
 

@@ -142,6 +142,8 @@ export async function GET(request: Request) {
     const query = searchParams.get("q");
     const page = parseInt(searchParams.get("page") || "1", 10);
     const limit = parseInt(searchParams.get("limit") || "10", 10);
+    const sortBy = searchParams.get("sortBy") || "date";
+    const sortOrder = searchParams.get("sortOrder") || "desc";
 
     const metadata = await getMetadata();
     let uploads = metadata.uploads;
@@ -167,6 +169,19 @@ export async function GET(request: Request) {
           u.logType?.toLowerCase().includes(q)
       );
     }
+
+    // Sorting
+    uploads.sort((a, b) => {
+      let comparison = 0;
+      if (sortBy === "date") {
+        comparison = new Date(a.uploadedAt).getTime() - new Date(b.uploadedAt).getTime();
+      } else if (sortBy === "size") {
+        comparison = a.size - b.size;
+      } else if (sortBy === "name") {
+        comparison = a.originalName.localeCompare(b.originalName);
+      }
+      return sortOrder === "desc" ? -comparison : comparison;
+    });
 
     // Pagination
     const total = uploads.length;
