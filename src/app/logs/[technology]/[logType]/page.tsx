@@ -15,6 +15,7 @@ import {
   GitPullRequest,
   MessageSquare,
   FileQuestion,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -169,12 +170,20 @@ export default async function LogTypePage({ params }: Props) {
                     </h1>
                     <p className="text-xl text-muted-foreground">{logType.description}</p>
                   </div>
-                  <Button variant="outline" size="sm" asChild className="shrink-0">
-                    <Link href={`/edit/${technologyId}/${logTypeId}`}>
-                      <Pencil className="h-4 w-4 mr-2" />
-                      Edit this page
-                    </Link>
-                  </Button>
+                  <div className="flex gap-2 shrink-0">
+                    <Button variant="outline" size="sm" asChild>
+                      <Link href={`/uploads?technology=${technologyId}&logType=${logTypeId}`}>
+                        <FileText className="h-4 w-4 mr-2" />
+                        View Samples
+                      </Link>
+                    </Button>
+                    <Button variant="outline" size="sm" asChild>
+                      <Link href={`/edit/${technologyId}/${logTypeId}`}>
+                        <Pencil className="h-4 w-4 mr-2" />
+                        Edit
+                      </Link>
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
