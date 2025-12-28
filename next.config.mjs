@@ -57,8 +57,8 @@ const nextConfig = {
         ],
       },
       {
-        // Extra security for uploaded files
-        source: '/uploads/:path*',
+        // Extra security for downloaded log files (served via API)
+        source: '/api/logs-upload/:filename*',
         headers: [
           {
             key: 'Content-Security-Policy',
@@ -67,6 +67,10 @@ const nextConfig = {
           {
             key: 'X-Content-Type-Options',
             value: 'nosniff',
+          },
+          {
+            key: 'Content-Disposition',
+            value: 'attachment',
           },
         ],
       },
