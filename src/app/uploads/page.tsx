@@ -11,14 +11,16 @@ import {
   Filter,
   Upload,
   Loader2,
+  Search,
+  ChevronDown,
+  ChevronUp,
+  FileCode,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import {
   Select,
@@ -27,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Breadcrumb } from "@/components/breadcrumb";
 
@@ -40,27 +43,45 @@ const TECHNOLOGIES = [
   { id: "mysql", name: "MySQL" },
 ];
 
+const LOG_TYPES: Record<string, string> = {
+  access: "Access",
+  error: "Error",
+  security: "Security",
+  auth: "Authentication",
+  audit: "Audit",
+  debug: "Debug",
+  system: "System",
+  application: "Application",
+  other: "Other",
+};
+
 interface LogUpload {
   id: string;
   filename: string;
   originalName: string;
   technology: string;
+  logType?: string;
   uploadedAt: string;
   size: number;
+  preview?: string;
+  lineCount?: number;
 }
 
 export default function UploadsPage() {
   const [uploads, setUploads] = useState<LogUpload[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [expandedPreviews, setExpandedPreviews] = useState<Set<string>>(new Set());
 
   const fetchUploads = useCallback(async () => {
     setLoading(true);
     try {
-      const url =
-        filter === "all"
-          ? "/api/logs-upload"
-          : `/api/logs-upload?technology=${filter}`;
+      const params = new URLSearchParams();
+      if (filter !== "all") params.set("technology", filter);
+      if (searchQuery) params.set("q", searchQuery);
+
+      const url = `/api/logs-upload${params.toString() ? `?${params.toString()}` : ""}`;
       const response = await fetch(url);
       const data = await response.json();
       setUploads(data.uploads || []);
@@ -70,11 +91,26 @@ export default function UploadsPage() {
     } finally {
       setLoading(false);
     }
-  }, [filter]);
+  }, [filter, searchQuery]);
 
   useEffect(() => {
-    fetchUploads();
+    const debounce = setTimeout(() => {
+      fetchUploads();
+    }, 300);
+    return () => clearTimeout(debounce);
   }, [fetchUploads]);
+
+  const togglePreview = (id: string) => {
+    setExpandedPreviews((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
 
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return `${bytes} B`;
@@ -126,25 +162,39 @@ export default function UploadsPage() {
         </Button>
       </div>
 
-      {/* Filter */}
-      <div className="flex items-center gap-4 mb-6">
-        <Filter className="h-4 w-4 text-muted-foreground" />
-        <Select value={filter} onValueChange={setFilter}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filter by technology" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Technologies</SelectItem>
-            {TECHNOLOGIES.map((tech) => (
-              <SelectItem key={tech.id} value={tech.id}>
-                {tech.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <span className="text-sm text-muted-foreground">
-          {uploads.length} file{uploads.length !== 1 ? "s" : ""}
-        </span>
+      {/* Search and Filter */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search logs by content, filename, technology..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <Filter className="h-4 w-4 text-muted-foreground" />
+          <Select value={filter} onValueChange={setFilter}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Filter by technology" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Technologies</SelectItem>
+              {TECHNOLOGIES.map((tech) => (
+                <SelectItem key={tech.id} value={tech.id}>
+                  {tech.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Results count */}
+      <div className="text-sm text-muted-foreground mb-4">
+        {uploads.length} file{uploads.length !== 1 ? "s" : ""} found
+        {searchQuery && ` for "${searchQuery}"`}
       </div>
 
       {/* Uploads List */}
@@ -156,16 +206,22 @@ export default function UploadsPage() {
         <Card>
           <CardContent className="py-12 text-center">
             <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium mb-2">No logs uploaded yet</h3>
+            <h3 className="text-lg font-medium mb-2">
+              {searchQuery ? "No logs found" : "No logs uploaded yet"}
+            </h3>
             <p className="text-muted-foreground mb-4">
-              Be the first to upload a log file!
+              {searchQuery
+                ? "Try a different search term"
+                : "Be the first to upload a log file!"}
             </p>
-            <Button asChild>
-              <Link href="/upload">
-                <Upload className="h-4 w-4 mr-2" />
-                Upload Log
-              </Link>
-            </Button>
+            {!searchQuery && (
+              <Button asChild>
+                <Link href="/upload">
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload Log
+                </Link>
+              </Button>
+            )}
           </CardContent>
         </Card>
       ) : (
@@ -173,38 +229,88 @@ export default function UploadsPage() {
           {uploads.map((upload) => (
             <Card key={upload.id}>
               <CardContent className="py-4">
-                <div className="flex items-center gap-4">
-                  <FileText className="h-10 w-10 text-primary shrink-0" />
+                <div className="flex items-start gap-4">
+                  <FileText className="h-10 w-10 text-primary shrink-0 mt-1" />
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-medium truncate">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <Link
+                        href={`/uploads/${upload.id}`}
+                        className="font-medium truncate hover:text-primary hover:underline"
+                      >
                         {upload.originalName}
-                      </h3>
+                      </Link>
                       <Badge variant="secondary">
                         {getTechnologyName(upload.technology)}
                       </Badge>
+                      {upload.logType && (
+                        <Badge variant="outline">
+                          {LOG_TYPES[upload.logType] || upload.logType}
+                        </Badge>
+                      )}
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
                       <span className="flex items-center gap-1">
                         <HardDrive className="h-3 w-3" />
                         {formatFileSize(upload.size)}
                       </span>
+                      {upload.lineCount && (
+                        <span className="flex items-center gap-1">
+                          <FileCode className="h-3 w-3" />
+                          {upload.lineCount} lines
+                        </span>
+                      )}
                       <span className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
                         {formatDate(upload.uploadedAt)}
                       </span>
                     </div>
+
+                    {/* Preview toggle */}
+                    {upload.preview && (
+                      <div className="mt-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => togglePreview(upload.id)}
+                          className="text-xs h-7 px-2"
+                        >
+                          {expandedPreviews.has(upload.id) ? (
+                            <>
+                              <ChevronUp className="h-3 w-3 mr-1" />
+                              Hide preview
+                            </>
+                          ) : (
+                            <>
+                              <ChevronDown className="h-3 w-3 mr-1" />
+                              Show preview
+                            </>
+                          )}
+                        </Button>
+                        {expandedPreviews.has(upload.id) && (
+                          <pre className="mt-2 p-3 bg-muted rounded-md text-xs overflow-x-auto max-h-60 overflow-y-auto font-mono">
+                            {upload.preview}
+                          </pre>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  <Button variant="outline" size="sm" asChild>
-                    <a
-                      href={`/api/logs-upload/${upload.filename}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      Download
-                    </a>
-                  </Button>
+                  <div className="flex gap-2 shrink-0">
+                    <Button variant="default" size="sm" asChild>
+                      <Link href={`/uploads/${upload.id}`}>
+                        <Eye className="h-4 w-4 mr-2" />
+                        View
+                      </Link>
+                    </Button>
+                    <Button variant="outline" size="sm" asChild>
+                      <a
+                        href={`/api/logs-upload/${upload.filename}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Download className="h-4 w-4" />
+                      </a>
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>

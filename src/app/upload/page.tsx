@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Breadcrumb } from "@/components/breadcrumb";
 
 const TECHNOLOGIES = [
@@ -37,11 +38,27 @@ const TECHNOLOGIES = [
   { id: "docker", name: "Docker" },
   { id: "postgresql", name: "PostgreSQL" },
   { id: "mysql", name: "MySQL" },
+  { id: "other", name: "Other (custom)" },
+];
+
+const LOG_TYPES = [
+  { id: "access", name: "Access" },
+  { id: "error", name: "Error" },
+  { id: "security", name: "Security" },
+  { id: "auth", name: "Authentication" },
+  { id: "audit", name: "Audit" },
+  { id: "debug", name: "Debug" },
+  { id: "system", name: "System" },
+  { id: "application", name: "Application" },
+  { id: "other", name: "Other (custom)" },
 ];
 
 export default function UploadPage() {
   const [file, setFile] = useState<File | null>(null);
   const [technology, setTechnology] = useState<string>("");
+  const [customTechnology, setCustomTechnology] = useState<string>("");
+  const [logType, setLogType] = useState<string>("");
+  const [customLogType, setCustomLogType] = useState<string>("");
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadResult, setUploadResult] = useState<{
@@ -97,7 +114,10 @@ export default function UploadPage() {
   };
 
   const handleUpload = async () => {
-    if (!file || !technology) return;
+    const finalTechnology = technology === "other" ? customTechnology : technology;
+    const finalLogType = logType === "other" ? customLogType : logType;
+
+    if (!file || !finalTechnology || !finalLogType) return;
 
     setIsUploading(true);
     setUploadResult(null);
@@ -105,7 +125,8 @@ export default function UploadPage() {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("technology", technology);
+      formData.append("technology", finalTechnology);
+      formData.append("logType", finalLogType);
 
       const response = await fetch("/api/logs-upload", {
         method: "POST",
@@ -121,6 +142,9 @@ export default function UploadPage() {
         });
         setFile(null);
         setTechnology("");
+        setCustomTechnology("");
+        setLogType("");
+        setCustomLogType("");
       } else {
         setUploadResult({
           success: false,
@@ -163,12 +187,18 @@ export default function UploadPage() {
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
-        <div>
+        <div className="flex-1">
           <h1 className="text-3xl font-bold tracking-tight">Upload Log File</h1>
           <p className="text-muted-foreground mt-1">
             Share your log files with the community
           </p>
         </div>
+        <Button variant="outline" asChild>
+          <Link href="/uploads">
+            <FileText className="h-4 w-4 mr-2" />
+            Browse Uploads
+          </Link>
+        </Button>
       </div>
 
       <div className="max-w-2xl mx-auto">
@@ -253,8 +283,44 @@ export default function UploadPage() {
                   ))}
                 </SelectContent>
               </Select>
+              {technology === "other" && (
+                <Input
+                  placeholder="Enter technology name (e.g., Caddy, Traefik, Redis...)"
+                  value={customTechnology}
+                  onChange={(e) => setCustomTechnology(e.target.value)}
+                  className="mt-2"
+                />
+              )}
               <p className="text-xs text-muted-foreground">
                 Choose which technology generated this log file
+              </p>
+            </div>
+
+            {/* Log Type Select */}
+            <div className="space-y-2">
+              <Label htmlFor="logType">Log Type</Label>
+              <Select value={logType} onValueChange={setLogType}>
+                <SelectTrigger id="logType">
+                  <SelectValue placeholder="Select a log type..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {LOG_TYPES.map((type) => (
+                    <SelectItem key={type.id} value={type.id}>
+                      {type.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {logType === "other" && (
+                <Input
+                  placeholder="Enter log type (e.g., slow-query, audit, metrics...)"
+                  value={customLogType}
+                  onChange={(e) => setCustomLogType(e.target.value)}
+                  className="mt-2"
+                />
+              )}
+              <p className="text-xs text-muted-foreground">
+                What type of log is this? (access, error, security, etc.)
               </p>
             </div>
 
@@ -306,7 +372,14 @@ export default function UploadPage() {
             {/* Upload Button */}
             <Button
               onClick={handleUpload}
-              disabled={!file || !technology || isUploading}
+              disabled={
+                !file ||
+                !technology ||
+                !logType ||
+                (technology === "other" && !customTechnology) ||
+                (logType === "other" && !customLogType) ||
+                isUploading
+              }
               className="w-full"
               size="lg"
             >
