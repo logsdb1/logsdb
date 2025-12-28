@@ -58,7 +58,7 @@ const nextConfig = {
       },
       {
         // Extra security for downloaded log files (served via API)
-        source: '/api/logs-upload/:filename*',
+        source: '/api/logs-upload/:filename+',
         headers: [
           {
             key: 'Content-Security-Policy',
