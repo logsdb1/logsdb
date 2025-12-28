@@ -15,11 +15,17 @@ export function Footer() {
           </p>
         </div>
         <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+          <Link href="/community" className="hover:underline">
+            Community
+          </Link>
           <Link href="/contribute" className="hover:underline">
             Contribute
           </Link>
           <Link href="/about" className="hover:underline">
             About
+          </Link>
+          <Link href="/privacy" className="hover:underline">
+            Privacy
           </Link>
           <a
             href="https://github.com/logsdb1/logsdb"

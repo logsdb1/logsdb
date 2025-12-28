@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import Link from "next/link";
 import {
   GitPullRequest,
@@ -8,6 +9,16 @@ import {
   Users,
   ArrowRight,
 } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Contribute",
+  description: "Contribute to LogsDB - the open source log encyclopedia. Add new log types, improve documentation, and help engineers worldwide parse logs faster.",
+  keywords: ["contribute", "open source", "log documentation", "github", "pull request"],
+  openGraph: {
+    title: "Contribute to LogsDB",
+    description: "Help build the universal log encyclopedia. Add new log types and improve documentation.",
+  },
+};
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -109,6 +120,12 @@ export default function ContributePage() {
         </p>
         <div className="flex justify-center gap-4 mt-8">
           <Button size="lg" asChild>
+            <Link href="/contribute/new">
+              <FileText className="mr-2 h-4 w-4" />
+              Add New Log Type
+            </Link>
+          </Button>
+          <Button size="lg" variant="outline" asChild>
             <a
               href="https://github.com/logsdb1/logsdb"
               target="_blank"

@@ -10,9 +10,13 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://logsdb.com"),
   title: {
     default: "LogsDB - The Universal Log Encyclopedia",
     template: "%s | LogsDB",
+  },
+  icons: {
+    icon: "/favicon.svg",
   },
   description:
     "Know your logs. Parse anything. Anywhere. The universal database of log formats, parsing patterns, and configurations for all technologies.",

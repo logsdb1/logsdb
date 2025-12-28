@@ -11,6 +11,8 @@ import {
   Loader2,
   CheckCircle,
   AlertCircle,
+  Eye,
+  GitPullRequest,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -107,8 +109,8 @@ export default function EditLogTypePage() {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!technology || !logType || !logTypeData) return;
 
     setIsSubmitting(true);
@@ -312,6 +314,10 @@ export default function EditLogTypePage() {
           <TabsList className="mb-6">
             <TabsTrigger value="edit">Edit</TabsTrigger>
             <TabsTrigger value="preview">Preview</TabsTrigger>
+            <TabsTrigger value="review">
+              <GitPullRequest className="h-4 w-4 mr-2" />
+              Review & Submit
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="edit">
@@ -448,18 +454,9 @@ export default function EditLogTypePage() {
                     Cancel
                   </Link>
                 </Button>
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating PR...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="mr-2 h-4 w-4" />
-                      Submit Pull Request
-                    </>
-                  )}
+                <Button type="button" onClick={() => setActiveTab("review")}>
+                  <Eye className="mr-2 h-4 w-4" />
+                  Review Changes
                 </Button>
               </div>
             </form>
@@ -522,6 +519,157 @@ export default function EditLogTypePage() {
                   )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="review">
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <GitPullRequest className="h-5 w-5" />
+                    Review Your Changes
+                  </CardTitle>
+                  <CardDescription>
+                    Review the changes below before creating a Pull Request
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Changes summary */}
+                  {logTypeData && (
+                    <div className="space-y-4">
+                      {form.description !== logTypeData.logType.description && (
+                        <div className="border rounded-lg p-4">
+                          <h4 className="font-semibold mb-3 text-sm">Description</h4>
+                          <div className="space-y-2">
+                            <div className="bg-red-500/10 border border-red-500/20 rounded p-3">
+                              <span className="text-xs text-red-500 font-medium">- Previous</span>
+                              <p className="text-sm mt-1 text-muted-foreground">{logTypeData.logType.description || "(empty)"}</p>
+                            </div>
+                            <div className="bg-green-500/10 border border-green-500/20 rounded p-3">
+                              <span className="text-xs text-green-500 font-medium">+ New</span>
+                              <p className="text-sm mt-1">{form.description || "(empty)"}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {form.example !== logTypeData.logType.example && (
+                        <div className="border rounded-lg p-4">
+                          <h4 className="font-semibold mb-3 text-sm">Example Log</h4>
+                          <div className="space-y-2">
+                            <div className="bg-red-500/10 border border-red-500/20 rounded p-3">
+                              <span className="text-xs text-red-500 font-medium">- Previous</span>
+                              <pre className="text-xs mt-1 text-muted-foreground overflow-x-auto">{logTypeData.logType.example || "(empty)"}</pre>
+                            </div>
+                            <div className="bg-green-500/10 border border-green-500/20 rounded p-3">
+                              <span className="text-xs text-green-500 font-medium">+ New</span>
+                              <pre className="text-xs mt-1 overflow-x-auto">{form.example || "(empty)"}</pre>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {form.structure !== logTypeData.logType.structure && (
+                        <div className="border rounded-lg p-4">
+                          <h4 className="font-semibold mb-3 text-sm">Structure</h4>
+                          <div className="space-y-2">
+                            <div className="bg-red-500/10 border border-red-500/20 rounded p-3">
+                              <span className="text-xs text-red-500 font-medium">- Previous</span>
+                              <pre className="text-xs mt-1 text-muted-foreground overflow-x-auto">{logTypeData.logType.structure || "(empty)"}</pre>
+                            </div>
+                            <div className="bg-green-500/10 border border-green-500/20 rounded p-3">
+                              <span className="text-xs text-green-500 font-medium">+ New</span>
+                              <pre className="text-xs mt-1 overflow-x-auto">{form.structure || "(empty)"}</pre>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {form.grokPattern !== logTypeData.logType.grokPattern && (
+                        <div className="border rounded-lg p-4">
+                          <h4 className="font-semibold mb-3 text-sm">Grok Pattern</h4>
+                          <div className="space-y-2">
+                            <div className="bg-red-500/10 border border-red-500/20 rounded p-3">
+                              <span className="text-xs text-red-500 font-medium">- Previous</span>
+                              <pre className="text-xs mt-1 text-muted-foreground overflow-x-auto">{logTypeData.logType.grokPattern || "(empty)"}</pre>
+                            </div>
+                            <div className="bg-green-500/10 border border-green-500/20 rounded p-3">
+                              <span className="text-xs text-green-500 font-medium">+ New</span>
+                              <pre className="text-xs mt-1 overflow-x-auto">{form.grokPattern || "(empty)"}</pre>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {form.regexPattern !== logTypeData.logType.regexPattern && (
+                        <div className="border rounded-lg p-4">
+                          <h4 className="font-semibold mb-3 text-sm">Regex Pattern</h4>
+                          <div className="space-y-2">
+                            <div className="bg-red-500/10 border border-red-500/20 rounded p-3">
+                              <span className="text-xs text-red-500 font-medium">- Previous</span>
+                              <pre className="text-xs mt-1 text-muted-foreground overflow-x-auto">{logTypeData.logType.regexPattern || "(empty)"}</pre>
+                            </div>
+                            <div className="bg-green-500/10 border border-green-500/20 rounded p-3">
+                              <span className="text-xs text-green-500 font-medium">+ New</span>
+                              <pre className="text-xs mt-1 overflow-x-auto">{form.regexPattern || "(empty)"}</pre>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {form.additionalNotes && (
+                        <div className="border rounded-lg p-4">
+                          <h4 className="font-semibold mb-3 text-sm">Notes for Reviewers</h4>
+                          <p className="text-sm text-muted-foreground">{form.additionalNotes}</p>
+                        </div>
+                      )}
+
+                      {/* No changes message */}
+                      {form.description === logTypeData.logType.description &&
+                        form.example === logTypeData.logType.example &&
+                        form.structure === logTypeData.logType.structure &&
+                        form.grokPattern === logTypeData.logType.grokPattern &&
+                        form.regexPattern === logTypeData.logType.regexPattern && (
+                          <div className="text-center py-8 text-muted-foreground">
+                            <AlertCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                            <p>No changes detected. Go back to the Edit tab to make changes.</p>
+                          </div>
+                        )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Submit Actions */}
+              <div className="flex items-center justify-between">
+                <Button variant="outline" onClick={() => setActiveTab("edit")}>
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to Edit
+                </Button>
+                <Button
+                  onClick={() => handleSubmit()}
+                  disabled={isSubmitting || !!(logTypeData &&
+                    form.description === logTypeData.logType.description &&
+                    form.example === logTypeData.logType.example &&
+                    form.structure === logTypeData.logType.structure &&
+                    form.grokPattern === logTypeData.logType.grokPattern &&
+                    form.regexPattern === logTypeData.logType.regexPattern
+                  )}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating PR...
+                    </>
+                  ) : (
+                    <>
+                      <GitPullRequest className="mr-2 h-4 w-4" />
+                      Create Pull Request
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </div>

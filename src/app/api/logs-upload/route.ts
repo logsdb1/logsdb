@@ -17,8 +17,11 @@ interface LogUploadMetadata {
   filename: string;
   originalName: string;
   technology: string;
+  logType: string;
   uploadedAt: string;
   size: number;
+  preview: string;
+  lineCount: number;
 }
 
 interface MetadataStore {
@@ -43,6 +46,7 @@ export async function POST(request: Request) {
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
     const technology = formData.get("technology") as string | null;
+    const logType = formData.get("logType") as string | null;
 
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
@@ -50,6 +54,10 @@ export async function POST(request: Request) {
 
     if (!technology) {
       return NextResponse.json({ error: "Technology is required" }, { status: 400 });
+    }
+
+    if (!logType) {
+      return NextResponse.json({ error: "Log type is required" }, { status: 400 });
     }
 
     // Check file size
@@ -85,6 +93,12 @@ export async function POST(request: Request) {
     const filePath = path.join(uploadsDir, filename);
     await writeFile(filePath, buffer);
 
+    // Extract preview (first 10 lines) and count total lines
+    const content = buffer.toString("utf-8");
+    const lines = content.split("\n");
+    const lineCount = lines.length;
+    const preview = lines.slice(0, 10).join("\n");
+
     // Save metadata
     const metadata = await getMetadata();
     const uploadEntry: LogUploadMetadata = {
@@ -92,8 +106,11 @@ export async function POST(request: Request) {
       filename,
       originalName: file.name,
       technology,
+      logType,
       uploadedAt: new Date().toISOString(),
       size: file.size,
+      preview,
+      lineCount,
     };
     metadata.uploads.unshift(uploadEntry);
     await saveMetadata(metadata);
@@ -107,6 +124,7 @@ export async function POST(request: Request) {
       id: randomId,
       filename: file.name,
       technology,
+      logType,
       size: file.size,
     });
   } catch (error) {
@@ -120,13 +138,32 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const technology = searchParams.get("technology");
+    const logType = searchParams.get("logType");
+    const query = searchParams.get("q");
 
     const metadata = await getMetadata();
     let uploads = metadata.uploads;
 
     // Filter by technology if specified
-    if (technology) {
+    if (technology && technology !== "all") {
       uploads = uploads.filter((u) => u.technology === technology);
+    }
+
+    // Filter by log type if specified
+    if (logType && logType !== "all") {
+      uploads = uploads.filter((u) => u.logType === logType);
+    }
+
+    // Search in preview content and filename
+    if (query) {
+      const q = query.toLowerCase();
+      uploads = uploads.filter(
+        (u) =>
+          u.originalName.toLowerCase().includes(q) ||
+          u.preview?.toLowerCase().includes(q) ||
+          u.technology.toLowerCase().includes(q) ||
+          u.logType?.toLowerCase().includes(q)
+      );
     }
 
     return NextResponse.json({ uploads });

@@ -25,6 +25,32 @@ const iconMap: Record<string, React.ReactNode> = {
   Database: <Database className="h-5 w-5" />,
 };
 
+// JSON-LD structured data for SEO
+const jsonLdWebsite = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "LogsDB",
+  "url": "https://logsdb.com",
+  "description": "The Universal Log Encyclopedia - Know your logs. Parse anything. Anywhere.",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://logsdb.com/logs?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+};
+
+const jsonLdOrganization = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "LogsDB",
+  "url": "https://logsdb.com",
+  "logo": "https://logsdb.com/favicon.svg",
+  "description": "The universal database of log formats, parsing patterns, and configurations for all technologies.",
+  "sameAs": [
+    "https://github.com/logsdb1/logsdb"
+  ]
+};
+
 export default function HomePage() {
   const allTechs = getAllTechnologies();
   const totalLogTypes = allTechs.reduce(
@@ -33,7 +59,16 @@ export default function HomePage() {
   );
 
   return (
-    <div className="flex flex-col">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdWebsite) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdOrganization) }}
+      />
+      <div className="flex flex-col">
       {/* Hero Section */}
       <section className="relative py-20 lg:py-32">
         <div className="container">
@@ -288,6 +323,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-    </div>
+      </div>
+    </>
   );
 }

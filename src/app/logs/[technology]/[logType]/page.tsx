@@ -13,6 +13,8 @@ import {
   BarChart,
   Pencil,
   GitPullRequest,
+  MessageSquare,
+  FileQuestion,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,6 +43,7 @@ import {
   getAllTechnologies,
   getLogTypesForTechnology,
 } from "@/data";
+import { RelatedDiscussions } from "@/components/related-discussions";
 
 interface Props {
   params: Promise<{ technology: string; logType: string }>;
@@ -98,9 +101,43 @@ export default async function LogTypePage({ params }: Props) {
     { id: "tested-on", label: "Tested On" },
   ];
 
+  // JSON-LD structured data for SEO
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    "headline": `${technology.name} ${logType.name} - Complete Reference`,
+    "description": logType.description,
+    "author": {
+      "@type": "Organization",
+      "name": "LogsDB",
+      "url": "https://logsdb.com"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "LogsDB",
+      "url": "https://logsdb.com"
+    },
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": `https://logsdb.com/logs/${technologyId}/${logTypeId}`
+    },
+    "about": {
+      "@type": "SoftwareApplication",
+      "name": technology.name,
+      "applicationCategory": technology.categories?.[0] || "Software"
+    },
+    "keywords": `${technology.name}, ${logType.name}, log parsing, log analysis, grok patterns, regex`,
+    "inLanguage": "en"
+  };
+
   return (
-    <div className="container py-10">
-      <Breadcrumb
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <div className="container py-10">
+        <Breadcrumb
         items={[
           { label: "Logs", href: "/logs" },
           { label: technology.name, href: `/logs/${technology.id}` },
@@ -133,14 +170,10 @@ export default async function LogTypePage({ params }: Props) {
                     <p className="text-xl text-muted-foreground">{logType.description}</p>
                   </div>
                   <Button variant="outline" size="sm" asChild className="shrink-0">
-                    <a
-                      href={`https://github.com/logsdb1/logsdb/edit/main/src/data/technologies/${technologyId}.ts`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
+                    <Link href={`/edit/${technologyId}/${logTypeId}`}>
                       <Pencil className="h-4 w-4 mr-2" />
                       Edit this page
-                    </a>
+                    </Link>
                   </Button>
                 </div>
               </div>
@@ -836,6 +869,14 @@ export default async function LogTypePage({ params }: Props) {
             </div>
           </div>
 
+          {/* Related Community Discussions */}
+          <RelatedDiscussions
+            technology={technologyId}
+            logType={logTypeId}
+            technologyName={technology.name}
+            logTypeName={logType.name}
+          />
+
           {/* Contribution Actions */}
           <Card className="bg-muted/30">
             <CardContent className="py-4">
@@ -848,14 +889,10 @@ export default async function LogTypePage({ params }: Props) {
                 </div>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" asChild>
-                    <a
-                      href={`https://github.com/logsdb1/logsdb/edit/main/src/data/technologies/${technologyId}.ts`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
+                    <Link href={`/edit/${technologyId}/${logTypeId}`}>
                       <Pencil className="h-4 w-4 mr-2" />
                       Edit
-                    </a>
+                    </Link>
                   </Button>
                   <Button variant="outline" size="sm" asChild>
                     <a
@@ -882,6 +919,7 @@ export default async function LogTypePage({ params }: Props) {
           </div>
         </aside>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
