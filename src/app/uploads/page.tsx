@@ -43,7 +43,19 @@ const TECHNOLOGIES = [
   { id: "mysql", name: "MySQL" },
 ];
 
-const LOG_TYPES: Record<string, string> = {
+const LOG_TYPES = [
+  { id: "access", name: "Access" },
+  { id: "error", name: "Error" },
+  { id: "security", name: "Security" },
+  { id: "auth", name: "Authentication" },
+  { id: "audit", name: "Audit" },
+  { id: "debug", name: "Debug" },
+  { id: "system", name: "System" },
+  { id: "application", name: "Application" },
+  { id: "other", name: "Other" },
+];
+
+const LOG_TYPES_MAP: Record<string, string> = {
   access: "Access",
   error: "Error",
   security: "Security",
@@ -71,6 +83,7 @@ export default function UploadsPage() {
   const [uploads, setUploads] = useState<LogUpload[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("all");
+  const [logTypeFilter, setLogTypeFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [expandedPreviews, setExpandedPreviews] = useState<Set<string>>(new Set());
 
@@ -79,6 +92,7 @@ export default function UploadsPage() {
     try {
       const params = new URLSearchParams();
       if (filter !== "all") params.set("technology", filter);
+      if (logTypeFilter !== "all") params.set("logType", logTypeFilter);
       if (searchQuery) params.set("q", searchQuery);
 
       const url = `/api/logs-upload${params.toString() ? `?${params.toString()}` : ""}`;
@@ -91,7 +105,7 @@ export default function UploadsPage() {
     } finally {
       setLoading(false);
     }
-  }, [filter, searchQuery]);
+  }, [filter, logTypeFilter, searchQuery]);
 
   useEffect(() => {
     const debounce = setTimeout(() => {
@@ -173,17 +187,30 @@ export default function UploadsPage() {
             className="pl-10"
           />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Filter className="h-4 w-4 text-muted-foreground" />
           <Select value={filter} onValueChange={setFilter}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Filter by technology" />
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Technology" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Technologies</SelectItem>
               {TECHNOLOGIES.map((tech) => (
                 <SelectItem key={tech.id} value={tech.id}>
                   {tech.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={logTypeFilter} onValueChange={setLogTypeFilter}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Log Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              {LOG_TYPES.map((type) => (
+                <SelectItem key={type.id} value={type.id}>
+                  {type.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -244,7 +271,7 @@ export default function UploadsPage() {
                       </Badge>
                       {upload.logType && (
                         <Badge variant="outline">
-                          {LOG_TYPES[upload.logType] || upload.logType}
+                          {LOG_TYPES_MAP[upload.logType] || upload.logType}
                         </Badge>
                       )}
                     </div>
