@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Database, Github, Sparkles, Users, Upload, Menu, X } from "lucide-react";
+import Image from "next/image";
+import { Github, Sparkles, Users, Upload, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SearchDialog } from "@/components/search-dialog";
@@ -34,7 +35,7 @@ export function Header() {
 
         <div className="mr-4 flex">
           <Link href="/" className="mr-6 flex items-center space-x-2">
-            <Database className="h-6 w-6 text-primary" />
+            <Image src="/icon.svg" alt="LogsDB" width={28} height={28} className="rounded" />
             <span className="font-bold text-xl">LogsDB</span>
           </Link>
           {/* Desktop navigation */}

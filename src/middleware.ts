@@ -70,6 +70,11 @@ export function middleware(request: NextRequest) {
   const ip = getClientIP(request);
   const method = request.method;
 
+  // Skip middleware for log file downloads (GET requests to /api/logs-upload/filename)
+  if (pathname.startsWith("/api/logs-upload/") && method === "GET" && pathname !== "/api/logs-upload/") {
+    return NextResponse.next();
+  }
+
   // Rate limit API routes
   if (pathname.startsWith("/api/")) {
     let config = { windowMs: 60000, maxRequests: 100 }; // Default: 100/min

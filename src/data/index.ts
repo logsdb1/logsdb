@@ -8,6 +8,7 @@ import { windows, windowsSecurityLog } from "./technologies/windows";
 import { docker, dockerContainerLog, dockerDaemonLog } from "./technologies/docker";
 import { postgresql, postgresqlServerLog } from "./technologies/postgresql";
 import { mysql, mysqlErrorLog, mysqlSlowLog } from "./technologies/mysql";
+import { paloalto, paloaltoTrafficLog, paloaltoThreatLog, paloaltoUrlLog } from "./technologies/paloalto";
 
 // All technologies indexed by ID
 export const technologies: Record<string, Technology> = {
@@ -18,6 +19,7 @@ export const technologies: Record<string, Technology> = {
   docker,
   postgresql,
   mysql,
+  paloalto,
 };
 
 // All log types indexed by "technologyId/logTypeId"
@@ -34,6 +36,9 @@ export const logTypes: Record<string, LogType> = {
   "postgresql/server": postgresqlServerLog,
   "mysql/error": mysqlErrorLog,
   "mysql/slow": mysqlSlowLog,
+  "paloalto/traffic": paloaltoTrafficLog,
+  "paloalto/threat": paloaltoThreatLog,
+  "paloalto/url": paloaltoUrlLog,
 };
 
 // Get technology by ID
@@ -95,6 +100,12 @@ export const categories: Category[] = [
     name: "Databases",
     icon: "Database",
     technologies: ["postgresql", "mysql"],
+  },
+  {
+    id: "security",
+    name: "Security & Firewalls",
+    icon: "Shield",
+    technologies: ["paloalto"],
   },
 ];
 
@@ -162,4 +173,5 @@ export const popularTechnologies = [
   technologies.windows,
   technologies.postgresql,
   technologies.apache,
+  technologies.paloalto,
 ];

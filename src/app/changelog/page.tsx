@@ -74,6 +74,37 @@ const changeTypeConfig: Record<
 // Changelog data - newest first
 const changelog: ChangelogEntry[] = [
   {
+    date: "2026-01-02",
+    changes: [
+      {
+        type: "content",
+        title: "Palo Alto Networks Logs",
+        description:
+          "Added complete documentation for Palo Alto Networks firewall logs: Traffic Log, Threat Log, and URL Filtering Log with full field descriptions, parsing patterns, and SIEM configurations.",
+        link: "/logs/paloalto",
+      },
+      {
+        type: "feature",
+        title: "Palo Alto Log Samples",
+        description:
+          "Added sample log files for all three Palo Alto log types with realistic security scenarios: network sessions, threat detections (CVEs, malware, C2), and URL filtering events.",
+        link: "/uploads",
+      },
+      {
+        type: "improvement",
+        title: "New App Logo & Favicon",
+        description:
+          "Updated the application logo and favicon with a new design. Added full favicon compatibility for Google, iOS (apple-touch-icon), Android, and PWA with multiple sizes (16px to 512px).",
+      },
+      {
+        type: "fix",
+        title: "Log Sample Downloads",
+        description:
+          "Fixed file download API that was returning duplicate Content-Disposition headers causing browser errors.",
+      },
+    ],
+  },
+  {
     date: "2025-12-28",
     changes: [
       {

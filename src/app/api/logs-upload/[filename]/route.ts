@@ -44,15 +44,13 @@ export async function GET(
       return NextResponse.json({ error: "Not a file" }, { status: 400 });
     }
 
-    const content = await readFile(resolvedPath);
+    const content = await readFile(resolvedPath, "utf-8");
 
-    // Sanitize filename for Content-Disposition header
-    const safeDisplayName = filename.replace(/[^\w.-]/g, "_");
-
-    return new NextResponse(content, {
+    // Use native Response to avoid NextResponse adding duplicate headers
+    return new Response(content, {
+      status: 200,
       headers: {
         "Content-Type": "text/plain; charset=utf-8",
-        "Content-Disposition": `inline; filename="${safeDisplayName}"`,
         "X-Content-Type-Options": "nosniff",
       },
     });

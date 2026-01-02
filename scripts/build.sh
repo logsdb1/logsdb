@@ -25,6 +25,15 @@ cp .env.local .next/standalone/
 # Ensure uploads directory exists
 mkdir -p .next/standalone/public/uploads/logs
 
+# Copy logos
+echo "Copying logos..."
+mkdir -p .next/standalone/public/logos
+cp public/logos/*.svg .next/standalone/public/logos/
+
+# Copy favicon (if exists)
+echo "Copying favicon..."
+cp public/favicon.svg .next/standalone/public/ 2>/dev/null || true
+
 # Restore uploads if backup exists
 if [ -d "$UPLOADS_BACKUP/logs" ]; then
   echo "Restoring uploads..."

@@ -16,7 +16,15 @@ export const metadata: Metadata = {
     template: "%s | LogsDB",
   },
   icons: {
-    icon: "/favicon.svg",
+    icon: [
+      { url: "/favicon.ico", sizes: "48x48" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
+    ],
   },
   description:
     "Know your logs. Parse anything. Anywhere. The universal database of log formats, parsing patterns, and configurations for all technologies.",
@@ -33,6 +41,8 @@ export const metadata: Metadata = {
     "apache logs",
     "linux logs",
     "windows event logs",
+    "palo alto logs",
+    "firewall logs",
   ],
   authors: [{ name: "LogsDB Community" }],
   openGraph: {
