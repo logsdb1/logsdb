@@ -1,5 +1,16 @@
 import { MetadataRoute } from "next";
 import { technologies, logTypes } from "@/data";
+import fs from "fs";
+import path from "path";
+
+interface UploadMetadata {
+  id: string;
+  uploadedAt: string;
+}
+
+interface MetadataFile {
+  uploads: UploadMetadata[];
+}
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://logsdb.com";
@@ -122,5 +133,28 @@ export default function sitemap(): MetadataRoute.Sitemap {
     }
   );
 
-  return [...staticPages, ...technologyPages, ...logTypePages];
+  // Individual upload pages
+  let uploadPages: MetadataRoute.Sitemap = [];
+  try {
+    const metadataPath = path.join(
+      process.cwd(),
+      "public",
+      "uploads",
+      "logs-metadata.json"
+    );
+    if (fs.existsSync(metadataPath)) {
+      const metadataContent = fs.readFileSync(metadataPath, "utf-8");
+      const metadata: MetadataFile = JSON.parse(metadataContent);
+      uploadPages = metadata.uploads.map((upload) => ({
+        url: `${baseUrl}/uploads/${upload.id}`,
+        lastModified: new Date(upload.uploadedAt),
+        changeFrequency: "monthly" as const,
+        priority: 0.6,
+      }));
+    }
+  } catch {
+    // If metadata file doesn't exist or is invalid, skip upload pages
+  }
+
+  return [...staticPages, ...technologyPages, ...logTypePages, ...uploadPages];
 }
