@@ -4,11 +4,12 @@ import { Technology, LogType, Category } from "@/types";
 import { nginx, nginxAccessLog, nginxErrorLog } from "./technologies/nginx";
 import { apache, apacheAccessLog, apacheErrorLog } from "./technologies/apache";
 import { linux, linuxSyslog, linuxAuthLog } from "./technologies/linux";
-import { windows, windowsSecurityLog } from "./technologies/windows";
+import { windows, windowsSecurityLog, windowsEvent4625 } from "./technologies/windows";
 import { docker, dockerContainerLog, dockerDaemonLog } from "./technologies/docker";
 import { postgresql, postgresqlServerLog } from "./technologies/postgresql";
 import { mysql, mysqlErrorLog, mysqlSlowLog } from "./technologies/mysql";
-import { paloalto, paloaltoTrafficLog, paloaltoThreatLog, paloaltoUrlLog } from "./technologies/paloalto";
+import { paloalto, paloaltoTrafficLog, paloaltoThreatLog, paloaltoUrlLog, paloaltoWildFireLog } from "./technologies/paloalto";
+import { cortexXdr, cortexXdrEndpointEvents, cortexXdrAlerts } from "./technologies/cortex-xdr";
 
 // All technologies indexed by ID
 export const technologies: Record<string, Technology> = {
@@ -20,6 +21,7 @@ export const technologies: Record<string, Technology> = {
   postgresql,
   mysql,
   paloalto,
+  "cortex-xdr": cortexXdr,
 };
 
 // All log types indexed by "technologyId/logTypeId"
@@ -31,6 +33,7 @@ export const logTypes: Record<string, LogType> = {
   "linux/syslog": linuxSyslog,
   "linux/auth": linuxAuthLog,
   "windows/security": windowsSecurityLog,
+  "windows/4625": windowsEvent4625,
   "docker/container": dockerContainerLog,
   "docker/daemon": dockerDaemonLog,
   "postgresql/server": postgresqlServerLog,
@@ -39,6 +42,9 @@ export const logTypes: Record<string, LogType> = {
   "paloalto/traffic": paloaltoTrafficLog,
   "paloalto/threat": paloaltoThreatLog,
   "paloalto/url": paloaltoUrlLog,
+  "paloalto/wildfire": paloaltoWildFireLog,
+  "cortex-xdr/endpoint-events": cortexXdrEndpointEvents,
+  "cortex-xdr/alerts": cortexXdrAlerts,
 };
 
 // Get technology by ID
@@ -105,7 +111,7 @@ export const categories: Category[] = [
     id: "security",
     name: "Security & Firewalls",
     icon: "Shield",
-    technologies: ["paloalto"],
+    technologies: ["paloalto", "cortex-xdr"],
   },
 ];
 
