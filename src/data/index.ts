@@ -4,7 +4,7 @@ import { Technology, LogType, Category } from "@/types";
 import { nginx, nginxAccessLog, nginxErrorLog } from "./technologies/nginx";
 import { apache, apacheAccessLog, apacheErrorLog } from "./technologies/apache";
 import { linux, linuxSyslog, linuxAuthLog } from "./technologies/linux";
-import { windows, windowsSecurityLog, windowsEvent4625 } from "./technologies/windows";
+import { windows, windowsSecurityLog, windowsEvent4624, windowsEvent4625 } from "./technologies/windows";
 import { docker, dockerContainerLog, dockerDaemonLog } from "./technologies/docker";
 import { postgresql, postgresqlServerLog } from "./technologies/postgresql";
 import { mysql, mysqlErrorLog, mysqlSlowLog } from "./technologies/mysql";
@@ -33,6 +33,7 @@ export const logTypes: Record<string, LogType> = {
   "linux/syslog": linuxSyslog,
   "linux/auth": linuxAuthLog,
   "windows/security": windowsSecurityLog,
+  "windows/4624": windowsEvent4624,
   "windows/4625": windowsEvent4625,
   "docker/container": dockerContainerLog,
   "docker/daemon": dockerDaemonLog,
