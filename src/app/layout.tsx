@@ -60,6 +60,11 @@ export const metadata: Metadata = {
     description:
       "Know your logs. Parse anything. Anywhere. The universal database of log formats.",
   },
+  verification: {
+    other: {
+      "msvalidate.01": "34D3028123F7B3DCFBB303B656ADDD1D",
+    },
+  },
 };
 
 export default function RootLayout({
